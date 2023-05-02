@@ -2,6 +2,9 @@
 #define GAME_H
 #include "board.h"
 #include "consts.h"
+#include <iostream>
+#include <list>
+using namespace std;
 
 class BaseGame {
 protected:
