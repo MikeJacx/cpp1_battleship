@@ -1,13 +1,24 @@
 #include "../lib/board.h"
+#include "../lib/consts.h"
 #include <iostream>
 #include <random>
 #include <set>
+
+
+
 Board::Board(const int &width, const int &height) {
   this->width = width;
   this->height = height;
   this->board = new bool *[height];
   for (int i = 0; i < height; i++) {
     this->board[i] = new bool[width];
+
+    // changed --------------------------------------------------------------------------
+    // add this loop to set all elements to false to avoid unpredictable or garbage values, which can be neither true nor false
+    for (int j = 0; j < width; j++) {  
+        this->board[i][j] = false;
+    }
+    //-----------------------------------------------------------------------------
     this->move_count = 0;
   }
 }
@@ -60,45 +71,46 @@ void Board::init(const int &num_ships) {
   }
 }
 
-bool Board::has_adjacent() {
-  int rows = this->height;
-  int cols = this->width;
+// changed ----------------------------------------------------------
+// has_adjacent takes a point x,y and returns true if there is a ship in the cells adjacent to it
 
-  const int directions[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
+bool Board::has_adjacent(const int& x, const int& y) {
+
+    int rows = HEIGHT;
+    int cols = WIDTH;
+
+    const int directions[8][2] = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
                                 {0, 1},   {1, -1}, {1, 0},  {1, 1}};
-  for (int row = 0; row < rows; ++row) {
-    for (int col = 0; col < cols; ++col) {
-      if (this->board[row][col]) {
-        for (const auto &dir : directions) {
-          int new_row = row + dir[0];
-          int new_col = col + dir[1];
+  
+    for (const auto &dir : directions) {
+        int new_x = x + dir[0];
+        int new_y = y + dir[1];
 
-          if (new_row >= 0 && new_row < rows && new_col >= 0 &&
-              new_col < cols && this->board[new_row][new_col]) {
-            return true;
-          }
+        if (new_x >= 0 && new_x < rows && new_y >= 0 &&
+            new_y < cols && this->board[new_x][new_y]) {
+        return true;
         }
-      }
     }
-  }
   return false;
 }
+//-----------------------------------------------------------------------
 
 ResponseType Board::guess(const int &x, const int &y) {
   this->move_count += 1;
   if (this->board[x][y]) {
     return ResponseType::HIT;
   }
-  return this->has_adjacent() ? ResponseType::NEARMISS : ResponseType::MISS;
+  return this->has_adjacent(x, y) ? ResponseType::NEARMISS : ResponseType::MISS;
 }
 
 void Board::print() {
   for (int i = 0; i < this->height; i++) {
     for (int j = 0; j < this->width; j++) {
-      std::cout << this->board[i][j];
+      std::cout << this->board[i][j] << " ";
     }
     std::cout << std::endl;
   }
+  std::cout << std::endl;
 }
 
 int Board::get_move_count() { return this->move_count; }
