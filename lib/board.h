@@ -9,7 +9,9 @@ private:
   int move_count, height, width;
   bool **board;
 
-  bool has_adjacent();
+  // changed ------------------------------------
+  bool has_adjacent(const int& x, const int& y);
+  //-----------------------------------------------
 
 public:
   Board(const int &width, const int &height);
