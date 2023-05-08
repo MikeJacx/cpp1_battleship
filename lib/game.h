@@ -3,8 +3,6 @@
 #include "board.h"
 #include "consts.h"
 #include <iostream>
-#include <list>
-using namespace std;
 
 class BaseGame {
 protected:
@@ -37,114 +35,58 @@ protected:
 
 class AssignmentGame : public BaseGame {
   protected:
-    int solve() override {
-        //IMPLEMENT YOUR SEARCH ALGORITHM HERE
-       struct Guess
-  {
-    /* data */
-    int x;
-    int y;
-  };
+      int solve() override {
 
-  list<Guess> guesses;
-  list<Guess> correctGuess;
-  list<Guess> wrongGuess;
-    int solve() override {
-        int hits= 0; 
-        while (hits<=SHIP_COUNT)
-        {
-            int randomX= 1 +(rand()%100);
-            int randomY= 1 +(rand()%100);
-            Guess randomGuess;
-            randomGuess.x = randomX;
-            randomGuess.y = randomY;
-            if(this->board->guess(randomX, randomY)== ResponseType::HIT)
-            {
-                correctGuess.push_back(randomGuess);
-                hits += 1; 
-            }
-            else if(this->board->guess(randomX,randomY)== ResponseType::NEARMISS)
-            {
-                if (CheckTheGuess (randomX + 1, randomY) && GuessOnceAgain(randomX + 1, randomY))
-                {
-                    Guess guessNew;
-                    guessNew.x = randomX + 1;
-                    guessNew.y = randomY;
-                    correctGuess.push_back(guessNew);
-                    hits += 1;
-                }
-                else if (CheckTheGuess(randomX - 1, randomY) && GuessOnceAgain(randomX - 1, randomY))
-                {
-                    Guess guessNew;
-                    guessNew.x = randomX - 1;
-                    guessNew.y = randomY;
-                    correctGuess.push_back(guessNew);
-                    hits += 1;
-                }
-                else if (CheckTheGuess(randomX, randomY + 1) && GuessOnceAgain(randomX, randomY + 1))
-                {
-                    Guess guessNew;
-                    guessNew.x = randomX;
-                    guessNew.y = randomY + 1;
-                    correctGuess.push_back(guessNew);
-                    hits += 1;
-                }
-                else if (CheckTheGuess(randomX, randomY - 1) && GuessOnceAgain(randomX, randomY - 1))
-                {
-                    Guess guessNew;
-                    guessNew.x = randomX;
-                    guessNew.y = randomY - 1;
-                    correctGuess.push_back(guessNew);
-                    hits += 1;
-                }
-            }
-            else if (this->board->guess(randomX, randomY) == ResponseType::MISS)
-            {
-                wrongGuess.push_back(randomGuess);
-            }
-        }
-        return hits;
-    }
-    bool CheckedGuesses(int x, int y)
-    {
-        bool success = true;
-        for (Guess g : correctGuess)
-        {
-            if (g.x == x && g.y == y)
-            {
-                success = false;
-            }
-        }
-        for (Guess g : wrongGuess)
-        {
-            if (g.x == x && g.y == y)
-            {
-                success = false;
-            }
-        }
-        return success;
-    }
-    bool GuessOnceAgain (int x, int y)
-    {
-        bool success = false;
-        if (this->board->guess(x, y) == ResponseType::HIT)
-        {
-            success = true;
-        }
-        return success;
-    }
-    bool CheckTheGuess (int x, int y)
-    {
-        bool success = false;
-        if (x <= WIDTH && y <= HEIGHT)
-        {
-            success = true;
-        }
-        return success;
-    }
-};
-        return SHIP_COUNT;
-    }
+          int hits = 0;
+
+          // this keeps track of the cells which are checked. Initially all are false i.e. yet to be checked
+          bool checked[HEIGHT][WIDTH] = { false };
+
+          for (int i = 0; i < HEIGHT; i++) {
+              for (int j = 0; j < WIDTH; j++) {
+
+                  if ( !checked[i][j] ) {
+
+                      // mark this cell as checked
+                      checked[i][j] = true;
+
+                      ResponseType response = this->board->guess(i, j);
+                     
+                      // ship found
+                      if (response == ResponseType::HIT) {
+                          hits += 1;
+                          
+                      }
+                      else if (response == ResponseType::MISS) {
+                          // mark adjacent cells as checked because no ship will be in the adjacent cells
+                          // if there were ships in the adjacent cells it would have returned near-miss
+                          
+                          mark_adjacent_checked(i, j, checked);
+                      }
+                  }
+              }
+          }
+          return hits;
+      }
+
+    protected:
+      void mark_adjacent_checked(int row, int col, bool checked[HEIGHT][WIDTH]) {
+          const int directions[8][2] = { {-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
+                                        {0, 1},   {1, -1}, {1, 0},  {1, 1} };
+          int rows = HEIGHT;
+          int cols = WIDTH;
+
+          for (const auto& dir : directions) {
+              int new_row = row + dir[0];
+              int new_col = col + dir[1];
+
+              // check for cells on the border of the board
+              if (new_row >= 0 && new_row < rows && new_col >= 0 && new_col < cols) {
+                  checked[new_row][new_col] = true;
+              }
+          }
+      }
+
 };
 
 
